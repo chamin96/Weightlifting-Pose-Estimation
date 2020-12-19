@@ -30,11 +30,11 @@ Install pytorch by following the quick start guide here (use pip) https://downlo
 Install other requirements with pip
 
     pip install -r requirements.txt
+    pip install torch==1.3.1+cpu torchvision==0.4.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 #### Download the Models
 
 * [dropbox](https://www.dropbox.com/sh/7xbup2qsn7vvjxo/AABWFksdlgOMXR_r5v3RwKRYa?dl=0)
-* [baiduyun](https://pan.baidu.com/s/1IlkvuSi0ocNckwbnUe7j-g)
 
 `*.pth` files are pytorch model, you could also download caffemodel file if you want to use caffe as backend.
 
