@@ -11,7 +11,7 @@ import time
 
 body_estimation = Body('model/body_pose_model.pth')
 
-input_filename = 'snatch_side_view'
+input_filename = 'london-men-1'
 capture = cv2.VideoCapture("videos/{}.mp4".format(input_filename))
 
 # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -38,6 +38,8 @@ while True:
         canvas = copy.deepcopy(frame)
         canvas = util.draw_bodypose(canvas, candidate, subset)
 
+        util.toTempList(candidate)
+
         # Write the frame into the file 'output.avi'
         out.write(canvas)
 
@@ -60,4 +62,5 @@ cv2.destroyAllWindows()
 end = time.time()
 print("Elapsed time: {} seconds".format(end - start))
 
+util.toDataframe()
 print('Done')

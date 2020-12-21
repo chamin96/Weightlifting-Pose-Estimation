@@ -11,7 +11,7 @@ import time
 
 body_estimation = Body('model/body_pose_model.pth')
 
-img = 'images/wl-man-3.png'
+img = 'images/wl-man-2.png'
 frame = cv2.imread(img)  # B,G,R order
 
 start = time.time()
@@ -19,8 +19,12 @@ start = time.time()
 candidate, subset = body_estimation(frame)
 canvas = copy.deepcopy(frame)
 
-print((subset))
-print((candidate))
+# print("subset\n",(subset))
+# print(candidate[:,[0,1]])
+# print("candidate\n",(np.delete(candidate, (2,3), axis=1)))
+
+util.toTempList(candidate)
+util.toDataframe()
 
 canvas = util.draw_bodypose(canvas, candidate, subset)
 
