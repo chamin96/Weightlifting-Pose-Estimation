@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import pandas as pd
 
 
 def padRightDownCorner(img, stride, padValue):
@@ -196,3 +197,25 @@ def npmax(array):
     i = arrayvalue.argmax()
     j = arrayindex[i]
     return i, j
+
+# column headers for dataframe
+columns = ["x0", "y0", "x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4", "x5", "y5",
+			 "x6", "y6", "x7", "y7", "x8", "y8", "x9", "y9", "x10", "y10", "x11", "y11",
+			 "x12", "y12", "x13", "y13", "x14", "y14", "x15", "y15", "x16", "y16", "x17", "y17"]
+
+
+# temporary list to store x,y coordinate values
+temp_list = []
+
+def toTempList(array):
+    #slice the array and save only x,y coordinates(0,1 columns)
+    if len(array[:,[0,1]]) == 18:
+        temp_list.append(array[:,[0,1]].flatten().tolist())
+    else:
+        temp_list.append([0]*36)
+
+def toDataframe():
+    # initialize an empty dataframe with column headers and pass temp_list
+    df = pd.DataFrame(data=temp_list, columns=columns)
+    df.to_csv('output/joints.csv')
+    print(df)
