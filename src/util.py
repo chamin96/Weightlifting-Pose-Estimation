@@ -219,3 +219,35 @@ def toDataframe():
     df = pd.DataFrame(data=temp_list, columns=columns)
     df.to_csv('output/joints.csv')
     print(df)
+
+# returns the initial knee angle
+# considers the joints 11, 12, and 13
+# needs a side view
+def calcInitialKneeAngle (x11, y11, x12, y12, x13, y13):
+    angle = math.degrees (math.atan2 ((y13 - y12), (x13 - x12)) - math.atan2 ((y11 - y12), (x11 - x12)))
+    return angle + 360 if angle < 0 else angle
+
+# returns the angle of the weightlifting bar with the x axis
+# considers the joints 4 and 7
+# needs a front view
+def calcBarAngle (x4, y4, x7, y7): 
+    return math.atan2 ((y7 - y4), (x7 - x4))
+
+# returns the thigh angle with x axis in split jerk stance
+# considers the joints 11 and 12
+# needs a side view
+# should be 20-40 degrees
+def calcSplitJerkThighAngle(x11, y11, x12, y12):
+    return math.atan2((y11-y12), (x11-x12))
+
+# returns weightlifting bar position
+def calcBarPosition(x4, y4, x7, y7):
+    return (x4+x7)/2, (y4+y7)/2
+
+# returns the velocity of the bar in x and y directions
+# takes bar positions of 2 adjacent frames and fps value as inputs 
+def calcBarVelocity (x1, y1, x2, y2, fps):
+    dx = (x2 - x1) / fps
+    dy = (y2 - y1) / fps
+    # return math.sqrt (dx^2 + dy^2)
+    return dx, dy
