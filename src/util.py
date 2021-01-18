@@ -11,6 +11,7 @@ import pandas as pd
 
 # initialize an empty dictionary to store absolute angles of body parts
 absolute_angles = {}
+relative_angles = {}
 
 def padRightDownCorner(img, stride, padValue):
     h = img.shape[0]
@@ -79,9 +80,25 @@ def draw_bodypose(canvas, candidate, subset):
             angle = math.degrees(math.atan2(X[0] - X[1], Y[0] - Y[1]))
             # append absolute angle and relevant body part to the dictionary
             absolute_angles.update({bodyParts[i]: angle})
+
+            # calculate and save relative angle
+            # TODO: need to optimize the conditions
+            if angle >= 0 and angle <= 90:
+                relative_angles.update({bodyParts[i]: (180.0 - angle)})
+            elif angle >= 90 and angle <= 180:
+                relative_angles.update({bodyParts[i]: (180.0 - angle)})
+            elif angle >= -90 and angle <= 0:
+                relative_angles.update({bodyParts[i]: (180.0 + abs(angle))})
+            elif angle >= -180 and angle <= -90:
+                relative_angles.update({bodyParts[i]: (180.0 + abs(angle))})
+            
             polygon = cv2.ellipse2Poly((int(mY), int(mX)), (int(length / 2), stickwidth), int(angle), 0, 360, 1)
             cv2.fillConvexPoly(cur_canvas, polygon, colors[i])
             canvas = cv2.addWeighted(canvas, 0.4, cur_canvas, 0.6, 0)
+    print(absolute_angles)
+    print(relative_angles)
+    print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
+    print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
     # plt.imsave("preview.jpg", canvas[:, :, [2, 1, 0]])
     # plt.imshow(canvas[:, :, [2, 1, 0]])
     return canvas

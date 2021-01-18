@@ -11,7 +11,7 @@ import time
 
 body_estimation = Body('model/body_pose_model.pth')
 
-img = 'images/wl-woman-1.jpeg'
+img = 'images/wl-man-2.png'
 frame = cv2.imread(img)  # B,G,R order
 
 start = time.time()
