@@ -2,6 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 import copy
 import numpy as np
+import csv
 
 from src import model
 from src import util
@@ -24,6 +25,14 @@ output_filename = "{}-output".format(input_filename)
 # Define the codec and create VideoWriter object.
 out = cv2.VideoWriter("results/{}.avi".format(output_filename), cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width,frame_height))
 
+# Creating a dictionary from the output.csv file
+reader = csv.reader(open('output.csv', 'r'))
+dict_csv = {}
+next(reader) # skip header
+for row in reader:
+  k, v = row
+  dict_csv[int(k)] = v
+
 frame_count = 0
 start = time.time()
 
@@ -31,7 +40,7 @@ while True:
     isTrue, frame = capture.read()
 
     if isTrue == True:
-        frame_count += 1
+        
         print('Processing %dth frame...' %frame_count)
 
         candidate, subset = body_estimation(frame)
@@ -39,6 +48,19 @@ while True:
         canvas = util.draw_bodypose(canvas, candidate, subset)
 
         util.toTempList(candidate)
+
+        # angle calculation
+
+        # calculate bar position of the frame
+        util.calcBarPosition()
+
+        # calculate initial knee angle
+        if dict_csv.get(frame_count) == 'setupsnatch' or dict_csv.get(frame_count) == 'setupclean':
+          util.calcInitialKneeAngle()
+
+        # calculate final bar angle
+        elif dict_csv.get(frame_count) == 'standsnatch' or dict_csv.get(frame_count) == 'recoveryjerk' or dict_csv.get(frame_count) == 'powerjerk' :
+          util.calcBarAngle()
 
         # Write the frame into the file 'output.avi'
         out.write(canvas)
@@ -49,6 +71,8 @@ while True:
         # Press Q on keyboard to stop recording
         if cv2.waitKey(1) & 0xFF == ord('d'):
           break
+
+        frame_count += 1
 
     # Break the loop
     else:
