@@ -75,7 +75,7 @@ def draw_bodypose(canvas, candidate, subset):
             mX = np.mean(X)
             mY = np.mean(Y)
             # print body parts lables on the image
-            cv2.putText(cur_canvas, bodyParts[i], (int(mY),int(mX)), cv2.FONT_HERSHEY_TRIPLEX, 1.0, colors[i], thickness=2)
+            # cv2.putText(cur_canvas, bodyParts[i], (int(mY),int(mX)), cv2.FONT_HERSHEY_TRIPLEX, 1.0, colors[i], thickness=2)
             length = ((X[0] - X[1]) ** 2 + (Y[0] - Y[1]) ** 2) ** 0.5
             angle = math.degrees(math.atan2(X[0] - X[1], Y[0] - Y[1]))
             # append absolute angle and relevant body part to the dictionary
@@ -97,8 +97,11 @@ def draw_bodypose(canvas, candidate, subset):
             canvas = cv2.addWeighted(canvas, 0.4, cur_canvas, 0.6, 0)
     print(absolute_angles)
     print(relative_angles)
-    print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
-    print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
+
+    if 'rThigh' in relative_angles.keys() and 'rLeg' in relative_angles.keys():
+        print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
+    if 'lThigh' in relative_angles.keys()  and 'lLeg' in relative_angles.keys() :
+        print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
     # plt.imsave("preview.jpg", canvas[:, :, [2, 1, 0]])
     # plt.imshow(canvas[:, :, [2, 1, 0]])
     return canvas
