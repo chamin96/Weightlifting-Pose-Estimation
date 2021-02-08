@@ -95,13 +95,13 @@ def draw_bodypose(canvas, candidate, subset):
             polygon = cv2.ellipse2Poly((int(mY), int(mX)), (int(length / 2), stickwidth), int(angle), 0, 360, 1)
             cv2.fillConvexPoly(cur_canvas, polygon, colors[i])
             canvas = cv2.addWeighted(canvas, 0.4, cur_canvas, 0.6, 0)
-    print(absolute_angles)
-    print(relative_angles)
+    # print(absolute_angles)
+    # print(relative_angles)
 
-    if 'rThigh' in relative_angles.keys() and 'rLeg' in relative_angles.keys():
-        print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
-    if 'lThigh' in relative_angles.keys()  and 'lLeg' in relative_angles.keys() :
-        print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
+    # if 'rThigh' in relative_angles.keys() and 'rLeg' in relative_angles.keys():
+        # print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
+    # if 'lThigh' in relative_angles.keys()  and 'lLeg' in relative_angles.keys() :
+        # print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
     # plt.imsave("preview.jpg", canvas[:, :, [2, 1, 0]])
     # plt.imshow(canvas[:, :, [2, 1, 0]])
     return canvas
@@ -262,7 +262,9 @@ def calcInitialKneeAngle (x11, y11, x12, y12, x13, y13):
 # considers the joints 4 and 7
 # needs a front view
 def calcBarAngle (x4, y4, x7, y7): 
-    return math.atan2 ((y7 - y4), (x7 - x4))
+    angle = math.degrees(math.atan2 ((y7 - y4), (x7 - x4)))
+    return angle + 36 if angle < 0 else angle
+       
 
 # returns the thigh angle with x axis in split jerk stance
 # considers the joints 11 and 12

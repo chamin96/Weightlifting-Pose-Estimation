@@ -36,6 +36,10 @@ for row in reader:
 frame_count = 0
 start = time.time()
 
+kneeAngles = []
+barPositions = []
+barAngles = []
+
 while True:
     isTrue, frame = capture.read()
 
@@ -47,20 +51,22 @@ while True:
         canvas = copy.deepcopy(frame)
         canvas = util.draw_bodypose(canvas, candidate, subset)
 
-        util.toTempList(candidate)
-
+        # util.toTempList(candidate)
+        temp = np.delete(candidate, (2,3), axis=1)
+        
         # angle calculation
 
         # calculate bar position of the frame
-        util.calcBarPosition()
+        # print("bar position: ")
+        barPositions.append(util.calcBarPosition(temp[4][0], temp[4][1], temp[7][0], temp[7][1]))
+        
+        # calculate bar angle of the frame
+        # print("bar angle: ")
+        barAngles.append(util.calcBarAngle(temp[4][0], temp[4][1], temp[7][0], temp[7][1]))
 
         # calculate initial knee angle
         if dict_csv.get(frame_count) == 'setupsnatch' or dict_csv.get(frame_count) == 'setupclean':
-          util.calcInitialKneeAngle()
-
-        # calculate final bar angle
-        elif dict_csv.get(frame_count) == 'standsnatch' or dict_csv.get(frame_count) == 'recoveryjerk' or dict_csv.get(frame_count) == 'powerjerk' :
-          util.calcBarAngle()
+          kneeAngles.append(util.calcInitialKneeAngle(temp[11][0], temp[11][1], temp[12][0], temp[12][1], temp[13][0], temp[13][1]))
 
         # Write the frame into the file 'output.avi'
         out.write(canvas)
@@ -77,6 +83,9 @@ while True:
     # Break the loop
     else:
       break
+
+# calculate average initial knee angle
+initialKnee = sum(kneeAngles) / len(kneeAngles)
 
 capture.release()
 out.release()
