@@ -5,3 +5,6 @@ hiddenlayer/
 .ipynb_checkpoints/
 __pycache__
 *.prototxt
+85kg_men_results
+85kg_men_test
+results
