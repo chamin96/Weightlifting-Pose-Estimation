@@ -238,32 +238,37 @@ columns = ["x0", "y0", "x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4", "x5", "y5
 # temporary list to store x,y coordinate values
 temp_list = []
 
-def toTempList(array):
-    #slice the array and save only x,y coordinates(0,1 columns)
-    if len(array[:,[0,1]]) == 18:
-        temp_list.append(array[:,[0,1]].flatten().tolist())
-    else:
-        temp_list.append([0]*36)
+# def toTempList(array):
+#     #slice the array and save only x,y coordinates(0,1 columns)
+#     if len(array[:,[0,1]]) == 18:
+#         temp_list.append(array[:,[0,1]].flatten().tolist())
+#     else:
+#         temp_list.append([0]*36)
 
-def toDataframe():
-    # initialize an empty dataframe with column headers and pass temp_list
-    df = pd.DataFrame(data=temp_list, columns=columns)
-    df.to_csv('output/joints.csv')
-    print(df)
+# def toDataframe():
+#     # initialize an empty dataframe with column headers and pass temp_list
+#     df = pd.DataFrame(data=temp_list, columns=columns)
+#     df.to_csv('output/joints.csv')
+#     print(df)
 
 # returns the initial knee angle
 # considers the joints 11, 12, and 13
 # needs a side view
-def calcInitialKneeAngle (x11, y11, x12, y12, x13, y13):
-    angle = math.degrees (math.atan2 ((y13 - y12), (x13 - x12)) - math.atan2 ((y11 - y12), (x11 - x12)))
-    return angle + 360 if angle < 0 else angle
+def calcInitialKneeAngle (a1, b1, c1):
+    a = np.array(a1)
+    b = np.array(b1)
+    c = np.array(c1)
+    ba = a - b
+    bc = c - b
+    cos_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    return np.degrees(np.arccos(cos_angle)) 
 
 # returns the angle of the weightlifting bar with the x axis
 # considers the joints 4 and 7
 # needs a front view
 def calcBarAngle (x4, y4, x7, y7): 
     angle = math.degrees(math.atan2 ((y7 - y4), (x7 - x4)))
-    return angle + 36 if angle < 0 else angle
+    return abs(angle)
        
 
 # returns the thigh angle with x axis in split jerk stance

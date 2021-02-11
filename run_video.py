@@ -13,7 +13,7 @@ import time
 
 body_estimation = Body('model/body_pose_model.pth')
 
-input_filename = 'men85kg_0001'
+input_filename = 'men85kg_0012'
 capture = cv2.VideoCapture("85kg_men_test/{}.mp4".format(input_filename))
 
 # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -53,21 +53,21 @@ while True:
         canvas = util.draw_bodypose(canvas, candidate, subset)
 
         # util.toTempList(candidate)
-        temp = np.delete(candidate, (2,3), axis=1)
+        coordinates = np.delete(candidate, (2,3), axis=1)
         
         # angle calculation
         action = dict_csv.get(frame_count)
         print('Action:', action)
         # calculate bar position of the frame
-        if len(temp) > 15:
-          barPositions.append(util.calcBarPosition(temp[4][0], temp[4][1], temp[7][0], temp[7][1]))
+        if len(coordinates) > 15:
+          barPositions.append(util.calcBarPosition(coordinates[4][0], coordinates[4][1], coordinates[7][0], coordinates[7][1]))
 
           # calculate bar angle of the frame
-          barAngles.append(util.calcBarAngle(temp[4][0], temp[4][1], temp[7][0], temp[7][1]))
+          barAngles.append(util.calcBarAngle(coordinates[4][0], coordinates[4][1], coordinates[7][0], coordinates[7][1]))
 
           # calculate initial knee angle
           if action == 'setupsnatch' or action == 'setupclean':
-            kneeAngles.append(util.calcInitialKneeAngle(temp[11][0], temp[11][1], temp[12][0], temp[12][1], temp[13][0], temp[13][1]))
+            kneeAngles.append(util.calcInitialKneeAngle(coordinates[11], coordinates[12], coordinates[13]))
 
         # Write the frame into the file 'output.avi'
         out.write(canvas)
@@ -91,17 +91,18 @@ initialKneeAngle = sum(kneeAngles) / len(kneeAngles)
 # calculate average of bar angles
 avgBarAngle = sum(barAngles) / len(barAngles)
 
-# print('Initial Knee Angle(Avg)', initialKneeAngle)
+print('Initial Knee Angle(Avg):', initialKneeAngle)
 # print('Bar Position', barPositions)
-# print('Bar Angle', barAngles)
+print('Average Bar Angle:', avgBarAngle)
 
+print('------ SCORE REPORT ------')
 knee_score = scoring.kneeAngleScore(initialKneeAngle)
 bar_score = scoring.barAngleScore(avgBarAngle)
 overall_score = scoring.overallScore(knee_score, bar_score)
 
-print('Knee Angle Score', knee_score)
-print('Bar Angle Score', bar_score)
-print('Overall Score', overall_score)
+print('Knee Angle Score:', knee_score)
+print('Bar Angle Score:', bar_score)
+print('Overall Score:', overall_score)
 
 capture.release()
 out.release()
@@ -111,5 +112,5 @@ cv2.destroyAllWindows()
 end = time.time()
 print("Elapsed time: {} seconds".format(end - start))
 
-util.toDataframe()
+# util.toDataframe()
 print('Done')
