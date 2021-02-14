@@ -15,9 +15,9 @@ from src import util
 from src.body import Body
 from scoring_model import scoring
 
-SRC_DIR = "./85kg_men_test"
-CSV_DIR = "./85kg_men_results"
-DST_DIR = "./result_score"
+SRC_DIR = "olympic-wl"
+CSV_DIR = "./olympic-wl-results"
+DST_DIR = "./result_score/{}".format(SRC_DIR)
 body_estimation = Body("model/body_pose_model.pth")
 score_list = []
 field_names = ["file", "kAngle", "bAngle", "kScore", "bScore", "oScore"]
@@ -34,7 +34,7 @@ for file in video_files:
 
     # Define the codec and create VideoWriter object.
     out = cv2.VideoWriter(
-        "results/{}.avi".format(OUTPUT_FILENAME),
+        "results/{}/{}.avi".format(SRC_DIR, OUTPUT_FILENAME),
         cv2.VideoWriter_fourcc("M", "J", "P", "G"),
         10,
         (frame_width, frame_height),
