@@ -15,8 +15,8 @@ from src import util
 from src.body import Body
 from scoring_model import scoring
 
-SRC_DIR = "olympic-wl"
-CSV_DIR = "./olympic-wl-results"
+SRC_DIR = "85kg_men_test"
+CSV_DIR = "./85kg_men_results"
 DST_DIR = "./result_score/{}".format(SRC_DIR)
 body_estimation = Body("model/body_pose_model.pth")
 score_list = []
