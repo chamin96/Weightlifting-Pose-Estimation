@@ -456,7 +456,7 @@ def draw_score_report(
         "Average Angles",
         (x + 10, y + 10),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 255),
         1,
     )
@@ -467,7 +467,7 @@ def draw_score_report(
         "Score Report",
         (w + x + 10, y + 10),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 255),
         1,
     )
@@ -478,7 +478,7 @@ def draw_score_report(
         initKAngle,
         (x + 10, y + 40),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -489,7 +489,7 @@ def draw_score_report(
         bAngle,
         (x + 10, y + 60),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -500,7 +500,7 @@ def draw_score_report(
         lAAngle,
         (x + 10, y + 80),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -511,7 +511,7 @@ def draw_score_report(
         rAAngle,
         (x + 10, y + 100),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -522,7 +522,7 @@ def draw_score_report(
         lLAngle,
         (x + 10, y + 120),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -533,7 +533,7 @@ def draw_score_report(
         rLAngle,
         (x + 10, y + 140),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -544,7 +544,7 @@ def draw_score_report(
         kScore,
         (w + x + 10, y + 40),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -555,7 +555,7 @@ def draw_score_report(
         bScore,
         (w + x + 10, y + 60),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -566,7 +566,7 @@ def draw_score_report(
         aScore,
         (w + x + 10, y + 80),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -577,7 +577,7 @@ def draw_score_report(
         lScore,
         (w + x + 10, y + 100),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
+        0.4,
         (0, 0, 0),
         1,
     )
@@ -588,8 +588,8 @@ def draw_score_report(
         oScore,
         (w + x + 10, y + 120),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.3,
-        (66, 135, 245),
+        0.4,
+        (245, 135, 66),
         1,
     )
 
