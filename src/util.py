@@ -13,49 +13,107 @@ import pandas as pd
 absolute_angles = {}
 relative_angles = {}
 
+
 def padRightDownCorner(img, stride, padValue):
     h = img.shape[0]
     w = img.shape[1]
 
     pad = 4 * [None]
-    pad[0] = 0 # up
-    pad[1] = 0 # left
-    pad[2] = 0 if (h % stride == 0) else stride - (h % stride) # down
-    pad[3] = 0 if (w % stride == 0) else stride - (w % stride) # right
+    pad[0] = 0  # up
+    pad[1] = 0  # left
+    pad[2] = 0 if (h % stride == 0) else stride - (h % stride)  # down
+    pad[3] = 0 if (w % stride == 0) else stride - (w % stride)  # right
 
     img_padded = img
-    pad_up = np.tile(img_padded[0:1, :, :]*0 + padValue, (pad[0], 1, 1))
+    pad_up = np.tile(img_padded[0:1, :, :] * 0 + padValue, (pad[0], 1, 1))
     img_padded = np.concatenate((pad_up, img_padded), axis=0)
-    pad_left = np.tile(img_padded[:, 0:1, :]*0 + padValue, (1, pad[1], 1))
+    pad_left = np.tile(img_padded[:, 0:1, :] * 0 + padValue, (1, pad[1], 1))
     img_padded = np.concatenate((pad_left, img_padded), axis=1)
-    pad_down = np.tile(img_padded[-2:-1, :, :]*0 + padValue, (pad[2], 1, 1))
+    pad_down = np.tile(img_padded[-2:-1, :, :] * 0 + padValue, (pad[2], 1, 1))
     img_padded = np.concatenate((img_padded, pad_down), axis=0)
-    pad_right = np.tile(img_padded[:, -2:-1, :]*0 + padValue, (1, pad[3], 1))
+    pad_right = np.tile(img_padded[:, -2:-1, :] * 0 + padValue, (1, pad[3], 1))
     img_padded = np.concatenate((img_padded, pad_right), axis=1)
 
     return img_padded, pad
+
 
 # transfer caffe model to pytorch which will match the layer name
 def transfer(model, model_weights):
     transfered_model_weights = {}
     for weights_name in model.state_dict().keys():
-        transfered_model_weights[weights_name] = model_weights['.'.join(weights_name.split('.')[1:])]
+        transfered_model_weights[weights_name] = model_weights[
+            ".".join(weights_name.split(".")[1:])
+        ]
     return transfered_model_weights
+
 
 # draw the body keypoint and lims
 def draw_bodypose(canvas, candidate, subset):
     stickwidth = 4
-    limbSeq = [[2, 3], [2, 6], [3, 4], [4, 5], [6, 7], [7, 8], [2, 9], [9, 10], \
-               [10, 11], [2, 12], [12, 13], [13, 14], [2, 1], [1, 15], [15, 17], \
-               [1, 16], [16, 18], [3, 17], [6, 18]]
+    limbSeq = [
+        [2, 3],
+        [2, 6],
+        [3, 4],
+        [4, 5],
+        [6, 7],
+        [7, 8],
+        [2, 9],
+        [9, 10],
+        [10, 11],
+        [2, 12],
+        [12, 13],
+        [13, 14],
+        [2, 1],
+        [1, 15],
+        [15, 17],
+        [1, 16],
+        [16, 18],
+        [3, 17],
+        [6, 18],
+    ]
 
-    bodyParts = ['lShoulder', 'rShoulder', 'lArm', 'lForearm', 'rArm', 'rForearm', 'lTrunk', 'lThigh', \
-                 'lLeg', 'rTrunk', 'rThigh', 'rLeg', 'neck', 'lCheeck', 'lEye', \
-                 'rCheeck', 'rEye', '', '']
+    bodyParts = [
+        "lShoulder",
+        "rShoulder",
+        "lArm",
+        "lForearm",
+        "rArm",
+        "rForearm",
+        "lTrunk",
+        "lThigh",
+        "lLeg",
+        "rTrunk",
+        "rThigh",
+        "rLeg",
+        "neck",
+        "lCheeck",
+        "lEye",
+        "rCheeck",
+        "rEye",
+        "",
+        "",
+    ]
 
-    colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0], [85, 255, 0], [0, 255, 0], \
-              [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], \
-              [170, 0, 255], [255, 0, 255], [255, 0, 170], [255, 0, 85]]
+    colors = [
+        [255, 0, 0],
+        [255, 85, 0],
+        [255, 170, 0],
+        [255, 255, 0],
+        [170, 255, 0],
+        [85, 255, 0],
+        [0, 255, 0],
+        [0, 255, 85],
+        [0, 255, 170],
+        [0, 255, 255],
+        [0, 170, 255],
+        [0, 85, 255],
+        [0, 0, 255],
+        [85, 0, 255],
+        [170, 0, 255],
+        [255, 0, 255],
+        [255, 0, 170],
+        [255, 0, 85],
+    ]
 
     for i in range(18):
         for n in range(len(subset)):
@@ -91,69 +149,452 @@ def draw_bodypose(canvas, candidate, subset):
                 relative_angles.update({bodyParts[i]: (180.0 + abs(angle))})
             elif angle >= -180 and angle <= -90:
                 relative_angles.update({bodyParts[i]: (180.0 + abs(angle))})
-            
-            polygon = cv2.ellipse2Poly((int(mY), int(mX)), (int(length / 2), stickwidth), int(angle), 0, 360, 1)
+
+            polygon = cv2.ellipse2Poly(
+                (int(mY), int(mX)), (int(length / 2), stickwidth), int(angle), 0, 360, 1
+            )
             cv2.fillConvexPoly(cur_canvas, polygon, colors[i])
             canvas = cv2.addWeighted(canvas, 0.4, cur_canvas, 0.6, 0)
     # print(absolute_angles)
     # print(relative_angles)
 
     # if 'rThigh' in relative_angles.keys() and 'rLeg' in relative_angles.keys():
-        # print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
+    # print("Right Knee Angle = ", abs(abs(360.0 - relative_angles['rThigh']) - abs(180.0 - relative_angles['rLeg'])))
     # if 'lThigh' in relative_angles.keys()  and 'lLeg' in relative_angles.keys() :
-        # print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
+    # print("Left Knee Angle = ", abs(abs(180.0 - relative_angles['lThigh']) - abs(360.0 - relative_angles['lLeg'])))
     # plt.imsave("preview.jpg", canvas[:, :, [2, 1, 0]])
     # plt.imshow(canvas[:, :, [2, 1, 0]])
     return canvas
 
+
 def draw_handpose(canvas, all_hand_peaks, show_number=False):
-    edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], \
-             [10, 11], [11, 12], [0, 13], [13, 14], [14, 15], [15, 16], [0, 17], [17, 18], [18, 19], [19, 20]]
+    edges = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 4],
+        [0, 5],
+        [5, 6],
+        [6, 7],
+        [7, 8],
+        [0, 9],
+        [9, 10],
+        [10, 11],
+        [11, 12],
+        [0, 13],
+        [13, 14],
+        [14, 15],
+        [15, 16],
+        [0, 17],
+        [17, 18],
+        [18, 19],
+        [19, 20],
+    ]
     fig = Figure(figsize=plt.figaspect(canvas))
 
     fig.subplots_adjust(0, 0, 1, 1)
     fig.subplots_adjust(bottom=0, top=1, left=0, right=1)
     bg = FigureCanvas(fig)
     ax = fig.subplots()
-    ax.axis('off')
+    ax.axis("off")
     ax.imshow(canvas)
 
     width, height = ax.figure.get_size_inches() * ax.figure.get_dpi()
 
     for peaks in all_hand_peaks:
         for ie, e in enumerate(edges):
-            if np.sum(np.all(peaks[e], axis=1)==0)==0:
+            if np.sum(np.all(peaks[e], axis=1) == 0) == 0:
                 x1, y1 = peaks[e[0]]
                 x2, y2 = peaks[e[1]]
-                ax.plot([x1, x2], [y1, y2], color=matplotlib.colors.hsv_to_rgb([ie/float(len(edges)), 1.0, 1.0]))
+                ax.plot(
+                    [x1, x2],
+                    [y1, y2],
+                    color=matplotlib.colors.hsv_to_rgb(
+                        [ie / float(len(edges)), 1.0, 1.0]
+                    ),
+                )
 
         for i, keyponit in enumerate(peaks):
             x, y = keyponit
-            ax.plot(x, y, 'r.')
+            ax.plot(x, y, "r.")
             if show_number:
                 ax.text(x, y, str(i))
     bg.draw()
-    canvas = np.fromstring(bg.tostring_rgb(), dtype='uint8').reshape(int(height), int(width), 3)
+    canvas = np.fromstring(bg.tostring_rgb(), dtype="uint8").reshape(
+        int(height), int(width), 3
+    )
     return canvas
+
 
 # image drawed by opencv is not good.
 def draw_handpose_by_opencv(canvas, peaks, show_number=False):
-    edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [0, 9], [9, 10], \
-             [10, 11], [11, 12], [0, 13], [13, 14], [14, 15], [15, 16], [0, 17], [17, 18], [18, 19], [19, 20]]
+    edges = [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 4],
+        [0, 5],
+        [5, 6],
+        [6, 7],
+        [7, 8],
+        [0, 9],
+        [9, 10],
+        [10, 11],
+        [11, 12],
+        [0, 13],
+        [13, 14],
+        [14, 15],
+        [15, 16],
+        [0, 17],
+        [17, 18],
+        [18, 19],
+        [19, 20],
+    ]
     # cv2.rectangle(canvas, (x, y), (x+w, y+w), (0, 255, 0), 2, lineType=cv2.LINE_AA)
     # cv2.putText(canvas, 'left' if is_left else 'right', (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     for ie, e in enumerate(edges):
-        if np.sum(np.all(peaks[e], axis=1)==0)==0:
+        if np.sum(np.all(peaks[e], axis=1) == 0) == 0:
             x1, y1 = peaks[e[0]]
             x2, y2 = peaks[e[1]]
-            cv2.line(canvas, (x1, y1), (x2, y2), matplotlib.colors.hsv_to_rgb([ie/float(len(edges)), 1.0, 1.0])*255, thickness=2)
+            cv2.line(
+                canvas,
+                (x1, y1),
+                (x2, y2),
+                matplotlib.colors.hsv_to_rgb([ie / float(len(edges)), 1.0, 1.0]) * 255,
+                thickness=2,
+            )
 
     for i, keyponit in enumerate(peaks):
         x, y = keyponit
         cv2.circle(canvas, (x, y), 4, (0, 0, 255), thickness=-1)
         if show_number:
-            cv2.putText(canvas, str(i), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 0), lineType=cv2.LINE_AA)
+            cv2.putText(
+                canvas,
+                str(i),
+                (x, y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.3,
+                (0, 0, 0),
+                lineType=cv2.LINE_AA,
+            )
     return canvas
+
+
+def draw_action(canvas, action):
+
+    height, width, c = canvas.shape
+    blank = 255 + np.zeros((height, int(width / 4), c), np.uint8)
+    canvas = np.hstack((blank, canvas))
+
+    x, y, w, h = 0, 0, int(width / 4), height
+
+    text = "Action: {}".format(action)
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text,
+        (x + 10, y + 20),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.2,
+        (0, 0, 255),
+        1,
+    )
+
+    return canvas
+
+
+def draw_bar_angle(canvas, angle):
+
+    width, height, c = canvas.shape
+
+    x, y, w, h = 0, 0, int(height / 4), height
+
+    text = "Bar Angle: {a:.2f}".format(a=angle)
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text,
+        (x + 10, y + 60),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    return canvas
+
+
+def draw_knee_angle(canvas, angle):
+
+    width, height, c = canvas.shape
+
+    x, y, w, h = 0, 0, int(height / 4), height
+
+    text = "Knee Angle: {a:.2f}".format(a=angle)
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text,
+        (x + 10, y + 80),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    return canvas
+
+
+def draw_arm_angle(canvas, l_arm_angle, r_arm_angle):
+
+    width, height, c = canvas.shape
+
+    x, y, w, h = 0, 0, int(height / 4), height
+
+    text1 = "LArm Angle: {a:.2f}".format(a=l_arm_angle)
+    text2 = "RArm Angle: {a:.2f}".format(a=r_arm_angle)
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text1,
+        (x + 10, y + 100),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text2,
+        (x + 10, y + 120),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    return canvas
+
+
+def draw_knee_angle_end(canvas, l_knee_angle, r_knee_angle):
+
+    width, height, c = canvas.shape
+
+    x, y, w, h = 0, 0, int(height / 4), height
+
+    text1 = "LKnee Angle: {a:.2f}".format(a=l_knee_angle)
+    text2 = "RKnee Angle: {a:.2f}".format(a=r_knee_angle)
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text1,
+        (x + 10, y + 140),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        text2,
+        (x + 10, y + 160),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    return canvas
+
+
+def draw_score_report(
+    canvas,
+    initKAngle,
+    bAngle,
+    lAAngle,
+    rAAngle,
+    lLAngle,
+    rLAngle,
+    kScore,
+    bScore,
+    lScore,
+    aScore,
+    oScore,
+):
+
+    width, height, c = canvas.shape
+    canvas = np.zeros([width, height, c], np.uint8)
+    canvas.fill(255)
+
+    x, y, w, h = 0, 0, int(height / 2), width
+
+    initKAngle = "Knee Angle: {a:.2f}".format(a=initKAngle)
+    bAngle = "Bar Angle: {a:.2f}".format(a=bAngle)
+    lAAngle = "L Arm Angle: {a:.2f}".format(a=lAAngle)
+    rAAngle = "R Arm Angle: {a:.2f}".format(a=rAAngle)
+    lLAngle = "L Leg Angle: {a:.2f}".format(a=lLAngle)
+    rLAngle = "R Leg Angle: {a:.2f}".format(a=rLAngle)
+
+    kScore = "Knee Score: {a:.2f}".format(a=kScore)
+    bScore = "Bar Score: {a:.2f}".format(a=bScore)
+    lScore = "Legs Score: {a:.2f}".format(a=lScore)
+    aScore = "Arms Score: {a:.2f}".format(a=aScore)
+    oScore = "Overall Score: {a:.4f}".format(a=oScore)
+
+    # Add text
+    cv2.putText(
+        canvas,
+        "Average Angles",
+        (x + 10, y + 10),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 255),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        "Score Report",
+        (w + x + 10, y + 10),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 255),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        initKAngle,
+        (x + 10, y + 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        bAngle,
+        (x + 10, y + 60),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        lAAngle,
+        (x + 10, y + 80),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        rAAngle,
+        (x + 10, y + 100),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        lLAngle,
+        (x + 10, y + 120),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        rLAngle,
+        (x + 10, y + 140),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        kScore,
+        (w + x + 10, y + 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        bScore,
+        (w + x + 10, y + 60),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        aScore,
+        (w + x + 10, y + 80),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        lScore,
+        (w + x + 10, y + 100),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (0, 0, 0),
+        1,
+    )
+
+    # Add text
+    cv2.putText(
+        canvas,
+        oScore,
+        (w + x + 10, y + 120),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.3,
+        (66, 135, 245),
+        1,
+    )
+
+    return canvas
+
 
 # detect hand according to body pose keypoints
 # please refer to https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/src/openpose/hand/handDetector.cpp
@@ -170,7 +611,7 @@ def handDetect(candidate, subset, oriImg):
         if not (has_left or has_right):
             continue
         hands = []
-        #left hand
+        # left hand
         if has_left:
             left_shoulder_index, left_elbow_index, left_wrist_index = person[[5, 6, 7]]
             x1, y1 = candidate[left_shoulder_index][:2]
@@ -179,7 +620,9 @@ def handDetect(candidate, subset, oriImg):
             hands.append([x1, y1, x2, y2, x3, y3, True])
         # right hand
         if has_right:
-            right_shoulder_index, right_elbow_index, right_wrist_index = person[[2, 3, 4]]
+            right_shoulder_index, right_elbow_index, right_wrist_index = person[
+                [2, 3, 4]
+            ]
             x1, y1 = candidate[right_shoulder_index][:2]
             x2, y2 = candidate[right_elbow_index][:2]
             x3, y3 = candidate[right_wrist_index][:2]
@@ -203,23 +646,28 @@ def handDetect(candidate, subset, oriImg):
             x -= width / 2
             y -= width / 2  # width = height
             # overflow the image
-            if x < 0: x = 0
-            if y < 0: y = 0
+            if x < 0:
+                x = 0
+            if y < 0:
+                y = 0
             width1 = width
             width2 = width
-            if x + width > image_width: width1 = image_width - x
-            if y + width > image_height: width2 = image_height - y
+            if x + width > image_width:
+                width1 = image_width - x
+            if y + width > image_height:
+                width2 = image_height - y
             width = min(width1, width2)
             # the max hand box value is 20 pixels
             if width >= 20:
                 detect_result.append([int(x), int(y), int(width), is_left])
 
-    '''
+    """
     return value: [[x, y, w, True if left hand else False]].
     width=height since the network require squared input.
     x, y is the coordinate of top left 
-    '''
+    """
     return detect_result
+
 
 # get max index of 2d array
 def npmax(array):
@@ -229,10 +677,46 @@ def npmax(array):
     j = arrayindex[i]
     return i, j
 
+
 # column headers for dataframe
-columns = ["x0", "y0", "x1", "y1", "x2", "y2", "x3", "y3", "x4", "y4", "x5", "y5",
-			 "x6", "y6", "x7", "y7", "x8", "y8", "x9", "y9", "x10", "y10", "x11", "y11",
-			 "x12", "y12", "x13", "y13", "x14", "y14", "x15", "y15", "x16", "y16", "x17", "y17"]
+columns = [
+    "x0",
+    "y0",
+    "x1",
+    "y1",
+    "x2",
+    "y2",
+    "x3",
+    "y3",
+    "x4",
+    "y4",
+    "x5",
+    "y5",
+    "x6",
+    "y6",
+    "x7",
+    "y7",
+    "x8",
+    "y8",
+    "x9",
+    "y9",
+    "x10",
+    "y10",
+    "x11",
+    "y11",
+    "x12",
+    "y12",
+    "x13",
+    "y13",
+    "x14",
+    "y14",
+    "x15",
+    "y15",
+    "x16",
+    "y16",
+    "x17",
+    "y17",
+]
 
 
 # temporary list to store x,y coordinate values
@@ -254,37 +738,50 @@ temp_list = []
 # returns the initial knee angle
 # considers the joints 11, 12, and 13
 # needs a side view
-def calcInitialKneeAngle (a1, b1, c1):
+def calcInitialKneeAngle(a1, b1, c1):
     a = np.array(a1)
     b = np.array(b1)
     c = np.array(c1)
     ba = a - b
     bc = c - b
     cos_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    return np.degrees(np.arccos(cos_angle)) 
+    return np.degrees(np.arccos(cos_angle))
+
+
+def calcArmAngle(a1, b1, c1):
+    a = np.array(a1)
+    b = np.array(b1)
+    c = np.array(c1)
+    ba = a - b
+    bc = c - b
+    cos_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    return np.degrees(np.arccos(cos_angle))
+
 
 # returns the angle of the weightlifting bar with the x axis
 # considers the joints 4 and 7
 # needs a front view
-def calcBarAngle (x4, y4, x7, y7): 
-    angle = math.degrees(math.atan2 ((y7 - y4), (x7 - x4)))
+def calcBarAngle(x4, y4, x7, y7):
+    angle = math.degrees(math.atan2((y7 - y4), (x7 - x4)))
     return abs(angle)
-       
+
 
 # returns the thigh angle with x axis in split jerk stance
 # considers the joints 11 and 12
 # needs a side view
 # should be 20-40 degrees
 def calcSplitJerkThighAngle(x11, y11, x12, y12):
-    return math.atan2((y11-y12), (x11-x12))
+    return math.atan2((y11 - y12), (x11 - x12))
+
 
 # returns weightlifting bar position
 def calcBarPosition(x4, y4, x7, y7):
-    return (x4+x7)/2, (y4+y7)/2
+    return (x4 + x7) / 2, (y4 + y7) / 2
+
 
 # returns the velocity of the bar in x and y directions
-# takes bar positions of 2 adjacent frames and fps value as inputs 
-def calcBarVelocity (x1, y1, x2, y2, fps):
+# takes bar positions of 2 adjacent frames and fps value as inputs
+def calcBarVelocity(x1, y1, x2, y2, fps):
     dx = (x2 - x1) / fps
     dy = (y2 - y1) / fps
     # return math.sqrt (dx^2 + dy^2)
