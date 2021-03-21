@@ -23,9 +23,11 @@ score_list = []
 field_names = ["file", "kAngle", "bAngle", "kScore", "bScore", "oScore"]
 
 _, _, video_files = next(walk(SRC_DIR))
+count = 1
 
 for file in video_files:
-    print("Processing {}".format(file))
+    print("Processing {}/{} file...".format(count, len(video_files)))
+    count += 1
     capture = cv2.VideoCapture("{}/{}".format(SRC_DIR, file))
     frame_width = int(capture.get(3))
     frame_height = int(capture.get(4))
@@ -37,7 +39,7 @@ for file in video_files:
         "results/{}/{}.avi".format(SRC_DIR, OUTPUT_FILENAME),
         cv2.VideoWriter_fourcc("M", "J", "P", "G"),
         10,
-        (frame_width, frame_height),
+        (frame_width + int(frame_width / 4), frame_height),
     )
 
     # Creating a dictionary from the output.csv file
@@ -54,6 +56,10 @@ for file in video_files:
     start = time.time()
 
     kneeAngles = []
+    larmAngles = []
+    rarmAngles = []
+    lkneeAngles = []
+    rkneeAngles = []
     barPositions = []
     barAngles = []
 
@@ -74,6 +80,9 @@ for file in video_files:
                 # angle calculation
                 action = dict_csv.get(frame_count)
 
+                # draw action text
+                canvas = util.draw_action(canvas, action)
+
                 # calculate bar position of the frame
                 if len(coordinates) > 15:
                     barPositions.append(
@@ -86,21 +95,60 @@ for file in video_files:
                     )
 
                     # calculate bar angle of the frame
-                    barAngles.append(
-                        util.calcBarAngle(
-                            coordinates[4][0],
-                            coordinates[4][1],
-                            coordinates[7][0],
-                            coordinates[7][1],
-                        )
+                    bar_angle = util.calcBarAngle(
+                        coordinates[4][0],
+                        coordinates[4][1],
+                        coordinates[7][0],
+                        coordinates[7][1],
                     )
+                    if bar_angle > 0:
+                        barAngles.append(bar_angle)
+
+                    # draw bar angle
+                    canvas = util.draw_bar_angle(canvas, bar_angle)
 
                     # calculate initial knee angle
                     if action == "setupsnatch" or action == "setupclean":
-                        kneeAngles.append(
-                            util.calcInitialKneeAngle(
-                                coordinates[11], coordinates[12], coordinates[13]
-                            )
+                        knee_angle = util.calcInitialKneeAngle(
+                            coordinates[11], coordinates[12], coordinates[13]
+                        )
+                        if knee_angle > 0:
+                            kneeAngles.append(knee_angle)
+                        # draw knee angle
+                        canvas = util.draw_knee_angle(canvas, knee_angle)
+
+                    # calculate arm/knee angles at the end
+                    if action == "standsnatch" or action == "recoveryjerk":
+                        l_arm_angle = util.calcArmAngle(
+                            coordinates[5], coordinates[6], coordinates[7]
+                        )
+                        if l_arm_angle > 100:
+                            larmAngles.append(l_arm_angle)
+
+                        r_arm_angle = util.calcArmAngle(
+                            coordinates[2], coordinates[3], coordinates[4]
+                        )
+                        if r_arm_angle > 100:
+                            rarmAngles.append(r_arm_angle)
+
+                        # draw arm angle
+                        canvas = util.draw_arm_angle(canvas, l_arm_angle, r_arm_angle)
+
+                        l_knee_angle = util.calcInitialKneeAngle(
+                            coordinates[11], coordinates[12], coordinates[13]
+                        )
+                        if l_knee_angle > 100:
+                            lkneeAngles.append(l_knee_angle)
+
+                        r_knee_angle = util.calcInitialKneeAngle(
+                            coordinates[8], coordinates[9], coordinates[10]
+                        )
+                        if r_knee_angle > 100:
+                            rkneeAngles.append(r_knee_angle)
+
+                        # draw knee angle
+                        canvas = util.draw_knee_angle_end(
+                            canvas, l_knee_angle, r_knee_angle
                         )
 
             # Write the frame into the file 'output.avi'
@@ -121,33 +169,99 @@ for file in video_files:
 
     # calculate average initial knee angle
     if len(kneeAngles) > 0:
-        avg_knee_angle = sum(kneeAngles) / len(kneeAngles)
+        initialKneeAngle = sum(kneeAngles) / len(kneeAngles)
     else:
-        avg_knee_angle = -1
+        initialKneeAngle = -1
 
     # calculate average of bar angles
     if len(barAngles) > 0:
-        avg_bar_angle = sum(barAngles) / len(barAngles)
+        avgBarAngle = sum(barAngles) / len(barAngles)
     else:
-        avg_bar_angle = -1
+        avgBarAngle = -1
 
-    if avg_knee_angle > 0 and avg_bar_angle > 0:
-        print("Initial Knee Angle(Avg):", avg_knee_angle)
-        print("Average Bar Angle:", avg_bar_angle)
+    # calculate average of l arm angles
+    avglArmAngle = sum(larmAngles) / len(larmAngles)
+
+    # calculate average of r arm angles
+    avgrArmAngle = sum(rarmAngles) / len(rarmAngles)
+
+    # calculate average of l legs angles
+    avglLegAngle = sum(lkneeAngles) / len(lkneeAngles)
+
+    # calculate average of r legs angles
+    avgrLegAngle = sum(rkneeAngles) / len(rkneeAngles)
+
+    if initialKneeAngle > 0 and avgBarAngle > 0:
+        print("Initial Knee Angle(Avg):", initialKneeAngle)
+        print("Average Bar Angle:", avgBarAngle)
+        print("Average Left Arm Angle:", avglArmAngle)
+        print("Average Right Arm Angle:", avgrArmAngle)
+        print("Average Left Leg Angle:", avglLegAngle)
+        print("Average Right Leg Angle:", avgrLegAngle)
 
         print("------ SCORE REPORT ------")
-        knee_score = scoring.kneeAngleScore(avg_knee_angle)
-        bar_score = scoring.barAngleScore(avg_bar_angle)
-        overall_score = scoring.overallScore(knee_score, bar_score)
+        knee_score = scoring.kneeAngleScore(initialKneeAngle)
+        bar_score = scoring.barAngleScore(avgBarAngle)
+        arms_score = scoring.armsAngleScore(avglArmAngle, avgrArmAngle)
+        legs_score = scoring.legsAngleScore(avglLegAngle, avgrLegAngle)
+        overall_score = scoring.overallScore(
+            knee_score, bar_score, legs_score, arms_score
+        )
 
         print("Knee Angle Score:", knee_score)
         print("Bar Angle Score:", bar_score)
+        print("Legs Angle Score:", legs_score)
+        print("Arms Angle Score:", arms_score)
         print("Overall Score:", overall_score)
 
+        canvas = util.draw_score_report(
+            canvas,
+            initialKneeAngle,
+            avgBarAngle,
+            avglArmAngle,
+            avgrArmAngle,
+            avglLegAngle,
+            avgrLegAngle,
+            knee_score,
+            bar_score,
+            legs_score,
+            arms_score,
+            overall_score,
+        )
+
+        # Write the frame into the file 'output.avi'
+        for i in range(100):
+            out.write(canvas)
+            # Display the resulting frame
+            cv2.imshow("Preview", canvas)
+            # Press Q on keyboard to stop recording
+            if cv2.waitKey(1) & 0xFF == ord("d"):
+                break
+
+        field_names = [
+            "file",
+            "kAngle",
+            "bAngle",
+            "larmAngle",
+            "rarmAngle",
+            "llegAngle",
+            "rlegAngle",
+            "legScore",
+            "armScore",
+            "kScore",
+            "bScore",
+            "oScore",
+        ]
         temp_scores = {
             "file": file,
-            "kAngle": avg_knee_angle,
-            "bAngle": avg_bar_angle,
+            "kAngle": initialKneeAngle,
+            "bAngle": avgBarAngle,
+            "larmAngle": avglArmAngle,
+            "rarmAngle": avgrArmAngle,
+            "llegAngle": avglLegAngle,
+            "rlegAngle": avgrLegAngle,
+            "legScore": legs_score,
+            "armScore": arms_score,
             "kScore": knee_score,
             "bScore": bar_score,
             "oScore": overall_score,
@@ -170,4 +284,5 @@ with open("{}/score_report.csv".format(DST_DIR), "w") as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=field_names)
     writer.writeheader()
     writer.writerows(score_list)
+
 print("Done")

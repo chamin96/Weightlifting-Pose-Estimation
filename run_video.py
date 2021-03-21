@@ -22,7 +22,6 @@ capture = cv2.VideoCapture("olympic-wl/{}.mp4".format(INPUT_FILENAME))
 # We convert the resolutions from float to integer.
 frame_width = int(capture.get(3))
 frame_height = int(capture.get(4))
-print(frame_width, frame_height)
 OUTPUT_FILENAME = "{}-output".format(INPUT_FILENAME)
 
 # Define the codec and create VideoWriter object.
@@ -167,7 +166,6 @@ avgrArmAngle = sum(rarmAngles) / len(rarmAngles)
 
 # calculate average of l legs angles
 avglLegAngle = sum(lkneeAngles) / len(lkneeAngles)
-print(avglLegAngle)
 
 # calculate average of r legs angles
 avgrLegAngle = sum(rkneeAngles) / len(rkneeAngles)
