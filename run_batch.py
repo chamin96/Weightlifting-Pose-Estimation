@@ -15,12 +15,25 @@ from src import util
 from src.body import Body
 from scoring_model import scoring
 
-SRC_DIR = "85kg_men_test"
-CSV_DIR = "./85kg_men_results"
+SRC_DIR = "olympic-wl"
+CSV_DIR = "./olympic-wl-results"
 DST_DIR = "./result_score/{}".format(SRC_DIR)
 body_estimation = Body("model/body_pose_model.pth")
 score_list = []
-field_names = ["file", "kAngle", "bAngle", "kScore", "bScore", "oScore"]
+field_names = [
+    "file",
+    "kAngle",
+    "bAngle",
+    "larmAngle",
+    "rarmAngle",
+    "llegAngle",
+    "rlegAngle",
+    "legScore",
+    "armScore",
+    "kScore",
+    "bScore",
+    "oScore",
+]
 
 _, _, video_files = next(walk(SRC_DIR))
 count = 1
@@ -238,20 +251,6 @@ for file in video_files:
             if cv2.waitKey(1) & 0xFF == ord("d"):
                 break
 
-        field_names = [
-            "file",
-            "kAngle",
-            "bAngle",
-            "larmAngle",
-            "rarmAngle",
-            "llegAngle",
-            "rlegAngle",
-            "legScore",
-            "armScore",
-            "kScore",
-            "bScore",
-            "oScore",
-        ]
         temp_scores = {
             "file": file,
             "kAngle": initialKneeAngle,
