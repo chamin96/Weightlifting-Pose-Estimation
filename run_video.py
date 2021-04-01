@@ -15,7 +15,7 @@ from scoring_model import scoring
 
 body_estimation = Body("model/body_pose_model.pth")
 
-INPUT_FILENAME = "men105kg_0001"
+INPUT_FILENAME = "men94kg_0001"
 capture = cv2.VideoCapture("olympic-wl/{}.mp4".format(INPUT_FILENAME))
 
 # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -176,6 +176,7 @@ print("Average Left Arm Angle:", avglArmAngle)
 print("Average Right Arm Angle:", avgrArmAngle)
 print("Average Left Leg Angle:", avglLegAngle)
 print("Average Right Leg Angle:", avgrLegAngle)
+# print("Bar Positions:", barPositions)
 
 print("------ SCORE REPORT ------")
 knee_score = scoring.kneeAngleScore(initialKneeAngle)
@@ -249,6 +250,17 @@ with open("./score_report.csv", "w") as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=field_names)
     writer.writeheader()
     writer.writerows(score_list)
+
+
+bar_pos_list = []
+for coordinate in barPositions:
+    bar_pos = {"x": coordinate[0], "y": coordinate[1]}
+    bar_pos_list.append(bar_pos.copy())
+
+with open("./barpos.csv", "w") as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=["x", "y"])
+    writer.writeheader()
+    writer.writerows(bar_pos_list)
 
 capture.release()
 out.release()
